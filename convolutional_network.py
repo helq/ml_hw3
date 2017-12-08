@@ -22,23 +22,26 @@ if __name__ == '__main__':
     model_name = 'mnist-modified'
 
     # Training Parameters
-    learning_rate = 0.001
     num_steps = 2000
     batch_size = 128
 
     # Network Parameters
-    num_input = 96*96 # NORB image size
-    num_classes = 5 # NORB total classes
-    dropout = 0.75 # Dropout, probability to keep units
+    #num_input = 96*96 # NORB image size
 
     config = tf.contrib.learn.RunConfig(
         save_checkpoints_steps=500
     )
 
+    params = {
+        'num_classes': 5, # NORB total classes
+        'dropout': 0.75, # Dropout, probability to keep units
+        'learning_rate': 0.001,
+    }
+
     # Build the Estimator
     model_fn = model_functions[model_name]
     model_dir = 'models-results/{}'.format(model_name)
-    model = tf.estimator.Estimator(model_fn, model_dir=model_dir, config=config)
+    model = tf.estimator.Estimator(model_fn, model_dir=model_dir, config=config, params=params)
 
     train_imgs, train_labels = load_set('training')
 

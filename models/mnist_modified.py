@@ -39,12 +39,12 @@ def conv_net(x_dict, n_classes, dropout, reuse, is_training):
 
 
 # Define the model function (following TF Estimator Template)
-def model_fn(features, labels, mode):
+def model_fn(features, labels, mode, params):
     # Build the neural network
     # Because Dropout have different behavior at training and prediction time, we
     # need to create 2 distinct computation graphs that still share the same weights.
-    logits_train = conv_net(features, num_classes, dropout, reuse=False, is_training=True)
-    logits_test  = conv_net(features, num_classes, dropout, reuse=True, is_training=False)
+    logits_train = conv_net(features, params['num_classes'], params['dropout'], reuse=False, is_training=True)
+    logits_test  = conv_net(features, params['num_classes'], params['dropout'], reuse=True, is_training=False)
 
     # Predictions
     pred_classes = tf.argmax(logits_test, axis=1)
@@ -58,7 +58,7 @@ def model_fn(features, labels, mode):
         # Define loss and optimizer
         loss_op = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(
             logits=logits_train, labels=tf.cast(labels, dtype=tf.int32)))
-        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
+        optimizer = tf.train.AdamOptimizer(learning_rate=params['learning_rate'])
         train_op = optimizer.minimize(loss_op,
                                       global_step=tf.train.get_global_step())
 
