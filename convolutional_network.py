@@ -1,5 +1,5 @@
 """
-Copyright Elkin Cruz
+Copyright 2017 Elkin Cruz
 Copyright Aymeric Damien
 
 Based on: https://github.com/aymericdamien/TensorFlow-Examples/blob/master/examples/3_NeuralNetworks/convolutional_network.py
@@ -73,48 +73,50 @@ def model_fn(features, labels, mode):
     if mode == tf.estimator.ModeKeys.PREDICT:
         return tf.estimator.EstimatorSpec(mode, predictions=pred_classes)
 
+    else:
         # Define loss and optimizer
-    loss_op = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(
-        logits=logits_train, labels=tf.cast(labels, dtype=tf.int32)))
-    optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
-    train_op = optimizer.minimize(loss_op,
-                                  global_step=tf.train.get_global_step())
+        loss_op = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(
+            logits=logits_train, labels=tf.cast(labels, dtype=tf.int32)))
+        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
+        train_op = optimizer.minimize(loss_op,
+                                      global_step=tf.train.get_global_step())
 
-    # Evaluate the accuracy of the model
-    acc_op = tf.metrics.accuracy(labels=labels, predictions=pred_classes)
+        # Evaluate the accuracy of the model
+        acc_op = tf.metrics.accuracy(labels=labels, predictions=pred_classes)
 
-    # TF Estimators requires to return a EstimatorSpec, that specify
-    # the different ops for training, evaluating, ...
-    estim_specs = tf.estimator.EstimatorSpec(
-        mode=mode,
-        predictions=pred_classes,
-        loss=loss_op,
-        train_op=train_op,
-        eval_metric_ops={'accuracy': acc_op})
+        # TF Estimators requires to return a EstimatorSpec, that specify
+        # the different ops for training, evaluating, ...
+        estim_specs = tf.estimator.EstimatorSpec(
+            mode=mode,
+            predictions=pred_classes,
+            loss=loss_op,
+            train_op=train_op,
+            eval_metric_ops={'accuracy': acc_op})
 
-    return estim_specs
+        return estim_specs
 
-# Build the Estimator
-model = tf.estimator.Estimator(model_fn)
+if __name__ == '__main__':
+    from loaddataset import load_set
 
-from loaddataset import load_set
+    # Build the Estimator
+    model = tf.estimator.Estimator(model_fn, model_dir='models')
 
-train_imgs, train_labels = load_set('training')
+    train_imgs, train_labels = load_set('training')
 
-# Define the input function for training
-input_fn = tf.estimator.inputs.numpy_input_fn(
-    x={'images': train_imgs}, y=train_labels,
-    batch_size=batch_size, num_epochs=None, shuffle=True)
-# Train the Model
-model.train(input_fn, steps=num_steps)
+    # Define the input function for training
+    input_fn = tf.estimator.inputs.numpy_input_fn(
+        x={'images': train_imgs}, y=train_labels,
+        batch_size=batch_size, num_epochs=None, shuffle=True)
+    # Train the Model
+    model.train(input_fn, steps=num_steps)
 
-test_imgs, test_labels = load_set('testing')
-# Evaluate the Model
-# Define the input function for evaluating
-input_fn = tf.estimator.inputs.numpy_input_fn(
-    x={'images': test_imgs}, y=test_labels,
-    batch_size=batch_size, shuffle=False)
-# Use the Estimator 'evaluate' method
-e = model.evaluate(input_fn)
+    test_imgs, test_labels = load_set('testing')
+    # Evaluate the Model
+    # Define the input function for evaluating
+    input_fn = tf.estimator.inputs.numpy_input_fn(
+        x={'images': test_imgs}, y=test_labels,
+        batch_size=batch_size, shuffle=False)
+    # Use the Estimator 'evaluate' method
+    e = model.evaluate(input_fn)
 
-print("Testing Accuracy:", e['accuracy'])
+    print("Testing Accuracy:", e['accuracy'])
