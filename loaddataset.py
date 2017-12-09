@@ -41,7 +41,7 @@ def load_labels(dataset = 'training'):
     return set_
 
 def load_set(dataset):
-    images = load_images(dataset).reshape( (24300, 2*96*96) ).astype( np.float32 ) / 256
+    images = load_images(dataset).transpose( (0,3,1,2) ).reshape( (24300, 2*96*96) ).astype( np.float32 ) / 256
     labels = load_labels(dataset).astype( np.uint8 )
     return images, labels
 

@@ -17,7 +17,7 @@ def conv_net(x_dict, n_classes, dropout, reuse, is_training):
         # TF Estimator input is a dict, in case of multiple inputs
         x = x_dict['images']
 
-        # NORB data input is a 1-D vector of 18492 features (2*96*96 pixels)
+        # NORB data input is a 1-D vector of 18432 features (2*96*96 pixels)
         # Reshape to match picture format [Height x Width x Channel]
         # Tensor input become 4-D: [Batch Size, Height, Width, Channel]
         x = tf.reshape(x, shape=[-1, 96, 96, 2])
@@ -64,11 +64,9 @@ def model_fn(features, labels, mode, params):
 
     else:
         # Define loss and optimizer
-        loss_op = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(
-            logits=logits_train, labels=tf.cast(labels, dtype=tf.int32)))
+        loss_op = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits( logits=logits_train, labels=tf.cast(labels, dtype=tf.int32)))
         optimizer = tf.train.AdamOptimizer(learning_rate=params['learning_rate'])
-        train_op = optimizer.minimize(loss_op,
-                                      global_step=tf.train.get_global_step())
+        train_op = optimizer.minimize(loss_op, global_step=tf.train.get_global_step())
 
         # Evaluate the accuracy of the model
         acc_op = tf.metrics.accuracy(labels=labels, predictions=pred_classes)
