@@ -14,16 +14,55 @@ import tensorflow as tf
 import models.mnist_modified as mnist_conv
 import models.lecun_orig_paper as lecun_orig_conv
 
+def generate_model_fn(conv_net):
+    # Define the model function (following TF Estimator Template)
+    def model_fn(features, labels, mode, params):
+        nonlocal conv_net
+        # Build the neural network
+        # Because Dropout have different behavior at training and prediction time, we
+        # need to create 2 distinct computation graphs that still share the same weights.
+        logits_train = conv_net(features, params['num_classes'], params['dropout'], reuse=False, is_training=True)
+        logits_test  = conv_net(features, params['num_classes'], params['dropout'], reuse=True, is_training=False)
+
+        # Predictions
+        pred_classes = tf.argmax(logits_test, axis=1)
+        #pred_probas = tf.nn.softmax(logits_test)
+
+        # If prediction mode, early return
+        if mode == tf.estimator.ModeKeys.PREDICT:
+            return tf.estimator.EstimatorSpec(mode, predictions=pred_classes)
+
+        else:
+            # Define loss and optimizer
+            loss_op = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits( logits=logits_train, labels=tf.cast(labels, dtype=tf.int32)))
+            optimizer = tf.train.AdamOptimizer(learning_rate=params['learning_rate'])
+            train_op = optimizer.minimize(loss_op, global_step=tf.train.get_global_step())
+
+            # Evaluate the accuracy of the model
+            acc_op = tf.metrics.accuracy(labels=labels, predictions=pred_classes)
+
+            # TF Estimators requires to return a EstimatorSpec, that specify
+            # the different ops for training, evaluating, ...
+            estim_specs = tf.estimator.EstimatorSpec(
+                mode=mode,
+                predictions=pred_classes,
+                loss=loss_op,
+                train_op=train_op,
+                eval_metric_ops={'accuracy': acc_op})
+
+            return estim_specs
+    return model_fn
+
 model_functions = {
-    'mnist-modified': mnist_conv.model_fn,
-    'lecun-orig-conv': lecun_orig_conv.model_fn
+    'mnist-modified':  generate_model_fn(mnist_conv.conv_net),
+    'lecun-orig-conv': generate_model_fn(lecun_orig_conv.conv_net)
 }
 
 if __name__ == '__main__':
     from loaddataset import load_set
 
-    #model_name = 'mnist-modified'
-    model_name = 'lecun-orig-conv'
+    model_name = 'mnist-modified'
+    #model_name = 'lecun-orig-conv'
 
     # Training Parameters
     num_steps = 2000
@@ -34,6 +73,7 @@ if __name__ == '__main__':
 
     config = tf.contrib.learn.RunConfig(
         save_checkpoints_steps=500
+    #  , log_step_count_steps=1
     )
 
     params = {
