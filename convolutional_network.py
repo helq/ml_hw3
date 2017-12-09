@@ -6,20 +6,24 @@ Based on: https://github.com/aymericdamien/TensorFlow-Examples/blob/master/examp
 Author: Aymeric Damien
 Project: https://github.com/aymericdamien/TensorFlow-Examples/
 """
+
 from __future__ import division, print_function, absolute_import
 
 import tensorflow as tf
 
 import models.mnist_modified as mnist_conv
+import models.lecun_orig_paper as lecun_orig_conv
 
 model_functions = {
-    'mnist-modified': mnist_conv.model_fn
+    'mnist-modified': mnist_conv.model_fn,
+    'lecun-orig-conv': lecun_orig_conv.model_fn
 }
 
 if __name__ == '__main__':
     from loaddataset import load_set
 
-    model_name = 'mnist-modified'
+    #model_name = 'mnist-modified'
+    model_name = 'lecun-orig-conv'
 
     # Training Parameters
     num_steps = 2000

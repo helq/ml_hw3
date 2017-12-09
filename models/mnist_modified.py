@@ -1,3 +1,11 @@
+"""
+Copyright 2017 Elkin Cruz
+Copyright Aymeric Damien
+
+Based on: https://github.com/aymericdamien/TensorFlow-Examples/blob/master/examples/3_NeuralNetworks/convolutional_network.py
+Author: Aymeric Damien
+Project: https://github.com/aymericdamien/TensorFlow-Examples/
+"""
 from __future__ import division, print_function, absolute_import
 
 import tensorflow as tf
@@ -48,7 +56,7 @@ def model_fn(features, labels, mode, params):
 
     # Predictions
     pred_classes = tf.argmax(logits_test, axis=1)
-    pred_probas = tf.nn.softmax(logits_test)
+    #pred_probas = tf.nn.softmax(logits_test)
 
     # If prediction mode, early return
     if mode == tf.estimator.ModeKeys.PREDICT:
