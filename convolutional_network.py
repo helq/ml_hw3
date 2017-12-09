@@ -21,8 +21,8 @@ def generate_model_fn(conv_net):
         # Build the neural network
         # Because Dropout have different behavior at training and prediction time, we
         # need to create 2 distinct computation graphs that still share the same weights.
-        logits_train = conv_net(features, params['num_classes'], params['dropout'], reuse=False, is_training=True)
-        logits_test  = conv_net(features, params['num_classes'], params['dropout'], reuse=True, is_training=False)
+        logits_train = conv_net(features, params['num_classes'], params['dropout'], reuse=False, is_training=True, params=params)
+        logits_test  = conv_net(features, params['num_classes'], params['dropout'], reuse=True, is_training=False, params=params)
 
         # Predictions
         pred_classes = tf.argmax(logits_test, axis=1)
@@ -61,8 +61,12 @@ model_functions = {
 if __name__ == '__main__':
     from loaddataset import load_set
 
-    model_name = 'mnist-modified'
-    #model_name = 'lecun-orig-conv'
+    model_params = {
+        'model_name': 'mnist-modified',
+        #'model_name': 'lecun-orig-conv',
+        #'activation': 'relu',
+        'activation': 'tanh',
+    }
 
     # Training Parameters
     num_steps = 2000
@@ -73,18 +77,24 @@ if __name__ == '__main__':
 
     config = tf.contrib.learn.RunConfig(
         save_checkpoints_steps=500
-    #  , log_step_count_steps=1
+      , log_step_count_steps=100
     )
 
+    activations = {
+        'tanh': tf.nn.tanh,
+        'relu': tf.nn.relu
+    }
     params = {
         'num_classes': 5, # NORB total classes
         'dropout': 0.75, # Dropout, probability to keep units
         'learning_rate': 0.001,
+        'activation': activations[ model_params['activation'] ]
     }
 
     # Build the Estimator
-    model_fn = model_functions[model_name]
-    model_dir = 'models-results/{}'.format(model_name)
+    model_fn = model_functions[model_params['model_name']]
+    model_dir = 'models-results/{model_name}-{activation}'.format(**model_params)
+
     model = tf.estimator.Estimator(model_fn, model_dir=model_dir, config=config, params=params)
 
     train_imgs, train_labels = load_set('training')

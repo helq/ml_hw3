@@ -11,7 +11,8 @@ from __future__ import division, print_function, absolute_import
 import tensorflow as tf
 
 # Create the neural network
-def conv_net(x_dict, n_classes, dropout, reuse, is_training):
+def conv_net(x_dict, n_classes, dropout, reuse, is_training, params):
+    activation = params['activation']
     # Define a scope for reusing the variables
     with tf.variable_scope('ConvNet', reuse=reuse):
         # TF Estimator input is a dict, in case of multiple inputs
@@ -26,9 +27,9 @@ def conv_net(x_dict, n_classes, dropout, reuse, is_training):
         x_left, x_right = tf.split(x, [1,1], axis=3)
 
         # Convolution Layer with 32 filters and a kernel size of 5
-        C1_map_monocular1 = tf.layers.conv2d(x_left,  2, 5, activation=tf.nn.relu)
-        C1_map_monocular2 = tf.layers.conv2d(x_right, 2, 5, activation=tf.nn.relu)
-        C1_map_binocular  = tf.layers.conv2d(x,       4, 5, activation=tf.nn.relu)
+        C1_map_monocular1 = tf.layers.conv2d(x_left,  2, 5, activation=activation)
+        C1_map_monocular2 = tf.layers.conv2d(x_right, 2, 5, activation=activation)
+        C1_map_binocular  = tf.layers.conv2d(x,       4, 5, activation=activation)
         # Max Pooling (down-sampling) with strides of 1 and kernel size of 4
         S2_map_monocular1 = tf.layers.max_pooling2d(C1_map_monocular1, 4, 1)
         S2_map_monocular2 = tf.layers.max_pooling2d(C1_map_monocular2, 4, 1)
@@ -51,7 +52,7 @@ def conv_net(x_dict, n_classes, dropout, reuse, is_training):
                             [S2_mono1_splited[i], S2_mono2_splited[j], S2_bino_splited[l1], S2_bino_splited[l2]]
                             , axis=3)
                         # creating feature map from 4 feature maps, 2 from binocular map and 2 from monocular maps
-                        C3_maps[idx] = tf.layers.conv2d(S2_maps_to_C3_map, 1, 3, activation=tf.nn.relu)
+                        C3_maps[idx] = tf.layers.conv2d(S2_maps_to_C3_map, 1, 3, activation=activation)
 
         # A total of 24 feature maps
         C3 = tf.concat(C3_maps, axis=3)
@@ -59,7 +60,7 @@ def conv_net(x_dict, n_classes, dropout, reuse, is_training):
         S4 = tf.layers.max_pooling2d(C3, 3, 1)
 
         # Creating 80 feature maps with kernels of size 6
-        C5 = tf.layers.conv2d(S4, 80, 6, activation=tf.nn.relu)
+        C5 = tf.layers.conv2d(S4, 80, 6, activation=activation)
 
         # Flatten the data to a 1-D vector for the fully connected layer
         fc1 = tf.contrib.layers.flatten(C5)
