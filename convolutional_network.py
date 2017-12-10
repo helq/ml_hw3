@@ -61,6 +61,8 @@ model_functions = {
 if __name__ == '__main__':
     from loaddataset import load_set
 
+    training = True
+    validation = True
     model_params = {
         #'model_name': 'mnist-modified',
         'model_name': 'lecun-orig-conv',
@@ -99,22 +101,40 @@ if __name__ == '__main__':
 
     model = tf.estimator.Estimator(model_fn, model_dir=model_dir, config=config, params=params)
 
-    train_imgs, train_labels = load_set('training')
+    if training:
+        train_imgs, train_labels = load_set('training')
 
-    # Define the input function for training
-    input_fn = tf.estimator.inputs.numpy_input_fn(
-        x={'images': train_imgs}, y=train_labels,
-        batch_size=batch_size, num_epochs=None, shuffle=True)
-    # Train the Model
-    model.train(input_fn, steps=num_steps)
+        # Define the input function for training
+        input_fn = tf.estimator.inputs.numpy_input_fn(
+            x={'images': train_imgs}, y=train_labels,
+            batch_size=batch_size, num_epochs=None, shuffle=True)
+        # Train the Model
+        model.train(input_fn, steps=num_steps)
 
-    test_imgs, test_labels = load_set('testing')
-    # Evaluate the Model
-    # Define the input function for evaluating
-    input_fn = tf.estimator.inputs.numpy_input_fn(
-        x={'images': test_imgs}, y=test_labels,
-        batch_size=batch_size, shuffle=False)
-    # Use the Estimator 'evaluate' method
-    e = model.evaluate(input_fn)
+    test_imgs_, test_labels_ = load_set('testing')
 
-    print("Testing Accuracy:", e['accuracy'])
+    # Evaluating model
+    if validation:
+        valid_imgs   = test_imgs_  [:11700]
+        valid_labels = test_labels_[:11700]
+        # Define the input function for evaluating
+        input_fn = tf.estimator.inputs.numpy_input_fn(
+            x={'images': valid_imgs}, y=valid_labels,
+            batch_size=100, shuffle=False)
+        # Use the Estimator 'evaluate' method
+        evaluation_valid = model.evaluate(input_fn)
+
+        print("Validation Accuracy: {}".format(evaluation_valid['accuracy']))
+
+    else:
+        # This is left for the last selected model, the accuracy value used to select the model
+        # doesn't usually reflect the real accuracy, it may be very well a fluke
+        test_imgs   = test_imgs_  [11700:]
+        test_labels = test_labels_[11700:]
+        # Define the input function for evaluating
+        input_fn = tf.estimator.inputs.numpy_input_fn(
+            x={'images': test_imgs}, y=test_labels,
+            batch_size=100, shuffle=False)
+        # Use the Estimator 'evaluate' method
+        evaluation_test = model.evaluate(input_fn)
+        print("Testing Accuracy: {}".format(evaluation_test['accuracy']))

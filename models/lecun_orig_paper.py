@@ -39,9 +39,9 @@ def conv_net(x_dict, reuse, is_training, params):
         S2_map_binocular  = tf.layers.max_pooling2d(C1_map_binocular , 4, 1)
 
         C3_maps = [None for idx in range(24)]
-        S2_mono1_splited = tf.split(S2_map_monocular1, 2, axis=3)
-        S2_mono2_splited = tf.split(S2_map_monocular2, 2, axis=3)
-        S2_bino_splited  = tf.split(S2_map_binocular,  4, axis=3)
+        S2_mono1_splited = tf.split(S2_map_monocular1, 2, axis=3) # size 2
+        S2_mono2_splited = tf.split(S2_map_monocular2, 2, axis=3) # size 2
+        S2_bino_splited  = tf.split(S2_map_binocular,  4, axis=3) # size 4
         # Convolution Layer with 24 filters and a kernel size of 3
         for (i, j, l1, l2, idx) in indices_maps():
             S2_maps_to_C3_map = tf.concat(
