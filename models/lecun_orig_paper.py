@@ -11,8 +11,11 @@ from __future__ import division, print_function, absolute_import
 import tensorflow as tf
 
 # Create the neural network
-def conv_net(x_dict, n_classes, dropout, reuse, is_training, params):
+def conv_net(x_dict, reuse, is_training, params):
     activation = params['activation']
+    n_classes = params['num_classes']
+    #dropout = params['num_classes']
+
     # Define a scope for reusing the variables
     with tf.variable_scope('ConvNet', reuse=reuse):
         # TF Estimator input is a dict, in case of multiple inputs
@@ -40,19 +43,12 @@ def conv_net(x_dict, n_classes, dropout, reuse, is_training, params):
         S2_mono2_splited = tf.split(S2_map_monocular2, 2, axis=3)
         S2_bino_splited  = tf.split(S2_map_binocular,  4, axis=3)
         # Convolution Layer with 24 filters and a kernel size of 3
-        for i in range(2):
-            for j in range(2):
-                k = 0
-                for l1 in range(3):
-                    for l2 in range(l1+1, 4):
-                        idx = i*12 + j*6 + k
-                        k += 1
-
-                        S2_maps_to_C3_map = tf.concat(
-                            [S2_mono1_splited[i], S2_mono2_splited[j], S2_bino_splited[l1], S2_bino_splited[l2]]
-                            , axis=3)
-                        # creating feature map from 4 feature maps, 2 from binocular map and 2 from monocular maps
-                        C3_maps[idx] = tf.layers.conv2d(S2_maps_to_C3_map, 1, 3, activation=activation)
+        for (i, j, l1, l2, idx) in indices_maps():
+            S2_maps_to_C3_map = tf.concat(
+                [S2_mono1_splited[i], S2_mono2_splited[j], S2_bino_splited[l1], S2_bino_splited[l2]]
+                , axis=3)
+            # creating feature map from 4 feature maps, 2 from binocular map and 2 from monocular maps
+            C3_maps[idx] = tf.layers.conv2d(S2_maps_to_C3_map, 1, 3, activation=activation)
 
         # A total of 24 feature maps
         C3 = tf.concat(C3_maps, axis=3)
@@ -69,9 +65,20 @@ def conv_net(x_dict, n_classes, dropout, reuse, is_training, params):
         #fc1 = tf.layers.dense(fc1, 1024)
 
         # Apply Dropout (if is_training is False, dropout is not applied)
-        fc1 = tf.layers.dropout(fc1, rate=dropout, training=is_training)
+        #fc1 = tf.layers.dropout(fc1, rate=dropout, training=is_training)
 
         # Output layer, class prediction
         out = tf.layers.dense(fc1, n_classes)
 
     return out
+
+def indices_maps():
+    for i in range(2):
+        for j in range(2):
+            k = 0
+            for l1 in range(3):
+                for l2 in range(l1+1, 4):
+                    idx = i*12 + j*6 + k
+                    k += 1
+                    #print( i, j, l1, l2, idx, k )
+                    yield i, j, l1, l2, idx

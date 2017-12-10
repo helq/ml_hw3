@@ -21,8 +21,8 @@ def generate_model_fn(conv_net):
         # Build the neural network
         # Because Dropout have different behavior at training and prediction time, we
         # need to create 2 distinct computation graphs that still share the same weights.
-        logits_train = conv_net(features, params['num_classes'], params['dropout'], reuse=False, is_training=True, params=params)
-        logits_test  = conv_net(features, params['num_classes'], params['dropout'], reuse=True, is_training=False, params=params)
+        logits_train = conv_net(features, reuse=False, is_training=True, params=params)
+        logits_test  = conv_net(features, reuse=True, is_training=False, params=params)
 
         # Predictions
         pred_classes = tf.argmax(logits_test, axis=1)
@@ -62,8 +62,8 @@ if __name__ == '__main__':
     from loaddataset import load_set
 
     model_params = {
-        'model_name': 'mnist-modified',
-        #'model_name': 'lecun-orig-conv',
+        #'model_name': 'mnist-modified',
+        'model_name': 'lecun-orig-conv',
         #'activation': 'relu',
         'activation': 'tanh',
     }
@@ -94,6 +94,8 @@ if __name__ == '__main__':
     # Build the Estimator
     model_fn = model_functions[model_params['model_name']]
     model_dir = 'models-results/{model_name}-{activation}'.format(**model_params)
+
+    print("Model dir: {}".format(model_dir))
 
     model = tf.estimator.Estimator(model_fn, model_dir=model_dir, config=config, params=params)
 

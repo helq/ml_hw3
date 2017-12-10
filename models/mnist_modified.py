@@ -11,8 +11,11 @@ from __future__ import division, print_function, absolute_import
 import tensorflow as tf
 
 # Create the neural network
-def conv_net(x_dict, n_classes, dropout, reuse, is_training, params):
+def conv_net(x_dict, reuse, is_training, params):
     activation = params['activation']
+    n_classes = params['num_classes']
+    dropout = params['num_classes']
+
     # Define a scope for reusing the variables
     with tf.variable_scope('ConvNet', reuse=reuse):
         # TF Estimator input is a dict, in case of multiple inputs
