@@ -13,11 +13,13 @@ import tensorflow as tf
 
 import models.mnist_modified as mnist_conv
 import models.lecun_orig_paper as lecun_orig_conv
+import models.mobilenet as mobilenet
 
-def generate_model_fn(conv_net):
+def generate_model_fn(conv_net, is_validating=True):
     # Define the model function (following TF Estimator Template)
     def model_fn(features, labels, mode, params):
         nonlocal conv_net
+        nonlocal is_validating
         # Build the neural network
         # Because Dropout have different behavior at training and prediction time, we
         # need to create 2 distinct computation graphs that still share the same weights.
@@ -41,6 +43,7 @@ def generate_model_fn(conv_net):
             # Evaluate the accuracy of the model
             acc_op = tf.metrics.accuracy(labels=labels, predictions=pred_classes)
 
+            accuracy_name = 'accuracy' if is_validating else 'accuracy_testing'
             # TF Estimators requires to return a EstimatorSpec, that specify
             # the different ops for training, evaluating, ...
             estim_specs = tf.estimator.EstimatorSpec(
@@ -48,38 +51,47 @@ def generate_model_fn(conv_net):
                 predictions=pred_classes,
                 loss=loss_op,
                 train_op=train_op,
-                eval_metric_ops={'accuracy': acc_op})
+                eval_metric_ops={accuracy_name: acc_op})
 
             return estim_specs
     return model_fn
 
 model_functions = {
-    'mnist-modified':  generate_model_fn(mnist_conv.conv_net),
-    'lecun-orig-conv': generate_model_fn(lecun_orig_conv.conv_net)
+    'mnist-modified':  mnist_conv.conv_net,
+    'lecun-orig-conv': lecun_orig_conv.conv_net,
+    'mobilenet': mobilenet.conv_net,
 }
 
 if __name__ == '__main__':
+    tf.logging.set_verbosity(tf.logging.INFO)
+
     from loaddataset import load_set
 
     training = True
     validation = True
     model_params = {
         #'model_name': 'mnist-modified',
-        'model_name': 'lecun-orig-conv',
+        #'model_name': 'lecun-orig-conv',
+        'model_name': 'mobilenet',
         #'activation': 'relu',
-        'activation': 'tanh',
+        #'activation': 'tanh',
     }
 
     # Training Parameters
-    num_steps = 2000
+    train_times = 4
+    num_steps = 500 # num_steps * train_times == total number of steps
     batch_size = 128
+    save_checkpoints_steps=500
+    log_step_count_steps=50
+    keep_checkpoint_max=15
 
     # Network Parameters
     #num_input = 96*96 # NORB image size
 
     config = tf.contrib.learn.RunConfig(
-        save_checkpoints_steps=500
-      , log_step_count_steps=100
+        save_checkpoints_steps=save_checkpoints_steps
+      , log_step_count_steps=log_step_count_steps
+      , keep_checkpoint_max=keep_checkpoint_max
     )
 
     activations = {
@@ -90,15 +102,18 @@ if __name__ == '__main__':
         'num_classes': 5, # NORB total classes
         'dropout': 0.75, # Dropout, probability to keep units
         'learning_rate': 0.001,
-        'activation': activations[ model_params['activation'] ]
     }
+    if 'activation' in model_params:
+        params['activation'] = activations[ model_params['activation'] ]
 
-    # Build the Estimator
-    model_fn = model_functions[model_params['model_name']]
-    model_dir = 'models-results/{model_name}-{activation}'.format(**model_params)
+    model_dir = 'models-results/{model_name}'.format(**model_params)
+    if 'activation' in model_params:
+        model_dir += '-{activation}'.format(**model_params)
 
     print("Model dir: {}".format(model_dir))
 
+    # Build the Estimator
+    model_fn = generate_model_fn( model_functions[model_params['model_name']] )
     model = tf.estimator.Estimator(model_fn, model_dir=model_dir, config=config, params=params)
 
     if training:
@@ -109,7 +124,8 @@ if __name__ == '__main__':
             x={'images': train_imgs}, y=train_labels,
             batch_size=batch_size, num_epochs=None, shuffle=True)
         # Train the Model
-        model.train(input_fn, steps=num_steps)
+        for _ in range(train_times): # this is necessary to trigger saving the accuracy measure
+            model.train(input_fn, steps=num_steps)
 
     test_imgs_, test_labels_ = load_set('testing')
 
@@ -127,6 +143,9 @@ if __name__ == '__main__':
         print("Validation Accuracy: {}".format(evaluation_valid['accuracy']))
 
     else:
+        model_fn_testing = generate_model_fn( model_functions[model_params['model_name']], is_validating=False)
+        model_testing = tf.estimator.Estimator(model_fn_testing, model_dir=model_dir, config=config, params=params)
+
         # This is left for the last selected model, the accuracy value used to select the model
         # doesn't usually reflect the real accuracy, it may be very well a fluke
         test_imgs   = test_imgs_  [11700:]
@@ -136,5 +155,5 @@ if __name__ == '__main__':
             x={'images': test_imgs}, y=test_labels,
             batch_size=100, shuffle=False)
         # Use the Estimator 'evaluate' method
-        evaluation_test = model.evaluate(input_fn)
-        print("Testing Accuracy: {}".format(evaluation_test['accuracy']))
+        evaluation_test = model_testing.evaluate(input_fn)
+        print("Testing Accuracy: {}".format(evaluation_test['accuracy_testing']))
