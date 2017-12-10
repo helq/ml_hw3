@@ -116,33 +116,38 @@ if __name__ == '__main__':
     model_fn = generate_model_fn( model_functions[model_params['model_name']] )
     model = tf.estimator.Estimator(model_fn, model_dir=model_dir, config=config, params=params)
 
-    if training:
+    if training and validation: # skip training if you're testing (not validating)
         train_imgs, train_labels = load_set('training')
 
         # Define the input function for training
         input_fn = tf.estimator.inputs.numpy_input_fn(
             x={'images': train_imgs}, y=train_labels,
             batch_size=batch_size, num_epochs=None, shuffle=True)
-        # Train the Model
-        for _ in range(train_times): # this is necessary to trigger saving the accuracy measure
-            model.train(input_fn, steps=num_steps)
 
     test_imgs_, test_labels_ = load_set('testing')
-
-    # Evaluating model
     if validation:
         valid_imgs   = test_imgs_  [:11700]
         valid_labels = test_labels_[:11700]
+        del test_imgs_, test_labels_
+
         # Define the input function for evaluating
-        input_fn = tf.estimator.inputs.numpy_input_fn(
+        input_fn_valid = tf.estimator.inputs.numpy_input_fn(
             x={'images': valid_imgs}, y=valid_labels,
             batch_size=100, shuffle=False)
-        # Use the Estimator 'evaluate' method
-        evaluation_valid = model.evaluate(input_fn)
 
-        print("Validation Accuracy: {}".format(evaluation_valid['accuracy']))
+        # Training the Model
+        # This is necessary to trigger saving the accuracy measure
+        for _ in range(train_times):
+            if training:
+                model.train(input_fn, steps=num_steps)
 
-    else:
+            # Evaluating model
+            # Use the Estimator 'evaluate' method
+            evaluation_valid = model.evaluate(input_fn_valid)
+
+            print("Validation Accuracy: {}".format(evaluation_valid['accuracy']))
+
+    else: # testing
         model_fn_testing = generate_model_fn( model_functions[model_params['model_name']], is_validating=False)
         model_testing = tf.estimator.Estimator(model_fn_testing, model_dir=model_dir, config=config, params=params)
 
@@ -150,10 +155,11 @@ if __name__ == '__main__':
         # doesn't usually reflect the real accuracy, it may be very well a fluke
         test_imgs   = test_imgs_  [11700:]
         test_labels = test_labels_[11700:]
+        del test_imgs_, test_labels_
         # Define the input function for evaluating
-        input_fn = tf.estimator.inputs.numpy_input_fn(
+        input_fn_test = tf.estimator.inputs.numpy_input_fn(
             x={'images': test_imgs}, y=test_labels,
             batch_size=100, shuffle=False)
         # Use the Estimator 'evaluate' method
-        evaluation_test = model_testing.evaluate(input_fn)
+        evaluation_test = model_testing.evaluate(input_fn_test)
         print("Testing Accuracy: {}".format(evaluation_test['accuracy_testing']))
