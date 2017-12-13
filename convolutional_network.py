@@ -15,6 +15,7 @@ import models.mnist_modified as mnist_conv
 import models.lecun_orig_paper as lecun_orig_conv
 import models.mobilenet as mobilenet
 import models.fullyconnected as fullyconnected
+import models.two_depthfully as two_depthfully
 
 def generate_model_fn(conv_net, is_validating=True):
     # Define the model function (following TF Estimator Template)
@@ -62,6 +63,7 @@ model_functions = {
     'lecun-orig-conv': lecun_orig_conv.conv_net,
     'mobilenet': mobilenet.conv_net,
     'fullyconnected': fullyconnected.conv_net,
+    'two_depthfully': two_depthfully.conv_net,
 }
 
 if __name__ == '__main__':
@@ -75,17 +77,18 @@ if __name__ == '__main__':
         #'model_name': 'mnist-modified',
         #'model_name': 'lecun-orig-conv',
         #'model_name': 'mobilenet',
-        'model_name': 'fullyconnected',
+        #'model_name': 'fullyconnected',
+        'model_name': 'two_depthfully',
         #'activation': 'relu',
         #'activation': 'tanh',
     }
 
     # Training Parameters
-    train_times = 4
-    num_steps = 500 # num_steps * train_times == total number of steps
+    train_times = 20
+    num_steps = 50 # num_steps * train_times == total number of steps
     batch_size = 128
-    save_checkpoints_steps=500
-    log_step_count_steps=50
+    save_checkpoints_steps=50
+    log_step_count_steps=10
     keep_checkpoint_max=15
 
     # Network Parameters
