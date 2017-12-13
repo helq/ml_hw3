@@ -14,6 +14,7 @@ import tensorflow as tf
 import models.mnist_modified as mnist_conv
 import models.lecun_orig_paper as lecun_orig_conv
 import models.mobilenet as mobilenet
+import models.fullyconnected as fullyconnected
 
 def generate_model_fn(conv_net, is_validating=True):
     # Define the model function (following TF Estimator Template)
@@ -60,6 +61,7 @@ model_functions = {
     'mnist-modified':  mnist_conv.conv_net,
     'lecun-orig-conv': lecun_orig_conv.conv_net,
     'mobilenet': mobilenet.conv_net,
+    'fullyconnected': fullyconnected.conv_net,
 }
 
 if __name__ == '__main__':
@@ -72,7 +74,8 @@ if __name__ == '__main__':
     model_params = {
         #'model_name': 'mnist-modified',
         #'model_name': 'lecun-orig-conv',
-        'model_name': 'mobilenet',
+        #'model_name': 'mobilenet',
+        'model_name': 'fullyconnected',
         #'activation': 'relu',
         #'activation': 'tanh',
     }
@@ -137,7 +140,7 @@ if __name__ == '__main__':
 
         # Training the Model
         # This is necessary to trigger saving the accuracy measure
-        for _ in range(train_times):
+        for _ in range(train_times if training else 1):
             if training:
                 model.train(input_fn, steps=num_steps)
 
