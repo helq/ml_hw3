@@ -59,16 +59,16 @@ def conv_net(x_dict, reuse, is_training, params):
         C5 = tf.layers.conv2d(S4, 80, 6, activation=activation)
 
         # Flatten the data to a 1-D vector for the fully connected layer
-        fc1 = tf.contrib.layers.flatten(C5)
+        FC6 = tf.contrib.layers.flatten(C5)
 
         # Fully connected layer. IT ISN'T DEFINED/USED in the paper
-        #fc1 = tf.layers.dense(fc1, 1024)
+        #FC6 = tf.layers.dense(FC6, 1024)
 
         # Apply Dropout (if is_training is False, dropout is not applied)
-        #fc1 = tf.layers.dropout(fc1, rate=dropout, training=is_training)
+        #FC6 = tf.layers.dropout(FC6, rate=dropout, training=is_training)
 
         # Output layer, class prediction
-        out = tf.layers.dense(fc1, n_classes)
+        out = tf.layers.dense(FC6, n_classes)
 
     return out
 

@@ -1,0 +1,36 @@
+---
+##### pandoc-citeproc config #####
+link-citations: true
+#suppress-bibliography: false
+lang: en
+#csl: CSL/chicago-author-date.csl
+
+#####     document data      #####
+
+classoption:
+  - format=acmtog
+colorlinks: true
+indent: true
+
+title: "Machine Learning class (IELE4014): Homework 3 Report"
+
+shortauthors: Elkin Cruz
+year: 2017
+
+author:
+    - name: Elkin Cruz
+      institution: UNAL
+#      affiliation: Master Student - Computer Engineering (UNAL)
+#      location: Bogotá, Colombia
+#      email: \texttt{elacruzca@unal.edu.co}
+
+#abstract: |
+#  \inlinetodo{FINISH ME!}
+
+#geometry: # regular letter size is 215.9 wide by 279.44 long
+#  - "paperwidth=275.9mm"
+#  - "paperheight=279.4mm"
+
+...
+
+<!-- vim:set filetype=markdown.pandoc : -->

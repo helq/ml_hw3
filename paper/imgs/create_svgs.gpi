@@ -1,0 +1,42 @@
+set terminal svg size 430,280
+set datafile separator ","
+
+#set title "Simple Plots" 
+set output 'perceptron_validation_accuracy.svg'
+set xlabel 'Step'
+set ylabel 'Accuracy'
+plot 'perceptron_validation_accuracy.csv' using 'Step':'Value' with lines title 'Validation Accuracy'
+
+set output 'perceptron_loss.svg'
+set xlabel 'Step'
+set ylabel 'Loss'
+plot 'perceptron_loss_training.csv'   using 'Step':'Value' with lines title 'Loss Training', \
+     'perceptron_loss_validating.csv' using 'Step':'Value' with lines title 'Loss Validating'
+
+set output 'onehidden_validation_accuracy.svg'
+set xlabel 'Step'
+set ylabel 'Accuracy'
+plot 'onehidden_validation_accuracy.csv' using 'Step':'Value' with lines title 'Validation Accuracy'
+
+set output 'onehidden_loss.svg'
+set xlabel 'Step'
+set ylabel 'Loss'
+plot 'onehidden_loss_training.csv'   using 'Step':'Value' with lines title 'Loss Training', \
+     'onehidden_loss_validating.csv' using 'Step':'Value' with lines title 'Loss Validating'
+
+set output 'mnist_validation_accuracy.svg'
+set xlabel 'Step'
+set ylabel 'Accuracy'
+plot 'mnist_tanh_validation_accuracy.csv' using 'Step':'Value' with lines title 'tanh', \
+     'mnist_relu_validation_accuracy.csv' using 'Step':'Value' with lines title 'relu'
+
+set output 'mnist_relu_loss.svg'
+set xlabel 'Step'
+set ylabel 'Loss'
+plot 'mnist_relu_loss_training.csv'   using 'Step':'Value' with lines title 'Loss Training', \
+     'mnist_relu_loss_validating.csv' using 'Step':'Value' with lines title 'Loss Validating'
+
+set output 'lecun_validation_accuracy.svg'
+set xlabel 'Step'
+set ylabel 'Accuracy'
+plot 'lecun_validation_accuracy.csv' using 'Step':'Value' with lines title 'Validation Accuracy'
