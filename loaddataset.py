@@ -8,7 +8,7 @@ def load_images(dataset = 'training'):
 
     path = '5x46789x9x18x6x2x96x96-training' if dataset == 'training' else '5x01235x9x18x6x2x96x96-testing'
 
-    with gzip.open('dataset/smallnorb-{}-dat.mat.gz'.format(path), 'r') as f:
+    with gzip.open('dataset/smallnorb-{}-dat.mat.gz'.format(path), 'rb') as f:
         header, ndim = struct.unpack('<ii', f.read(8))
         assert (0x1E3D4C55, 4) == (header, ndim)
         ints_to_read = ndim if ndim>2 else 3
@@ -29,7 +29,7 @@ def load_labels(dataset = 'training'):
 
     path = '5x46789x9x18x6x2x96x96-training' if dataset == 'training' else '5x01235x9x18x6x2x96x96-testing'
 
-    with gzip.open('dataset/smallnorb-{}-cat.mat.gz'.format(path), 'r') as f:
+    with gzip.open('dataset/smallnorb-{}-cat.mat.gz'.format(path), 'rb') as f:
         header, ndim = struct.unpack('<ii', f.read(8))
         assert (0x1E3D4C54, 1) == (header, ndim)
         ints_to_read = ndim if ndim>2 else 3

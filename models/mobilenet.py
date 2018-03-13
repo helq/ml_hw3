@@ -28,6 +28,6 @@ def conv_net(x_dict, reuse, is_training, params):
 
         logits, _ = mobilenet_v1.mobilenet_v1(
                         x, num_classes=n_classes, is_training=is_training,
-                        depth_multiplier=0.50, prediction_fn=None, reuse=reuse)
+                        depth_multiplier=0.50, prediction_fn=None)
 
     return logits
